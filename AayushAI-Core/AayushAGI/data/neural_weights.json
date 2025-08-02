@@ -1,0 +1,7 @@
+{
+  "greeting_importance": 0.7,
+  "task_completion": 0.9,
+  "emotional_support": 0.8,
+  "information_accuracy": 0.95,
+  "response_speed": 0.6
+}

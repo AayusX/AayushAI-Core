@@ -1,0 +1,55 @@
+{
+  "productivity_boost": {
+    "trigger": "focus_mode",
+    "actions": [
+      {
+        "type": "close_distracting_apps",
+        "apps": [
+          "firefox",
+          "discord",
+          "steam"
+        ]
+      },
+      {
+        "type": "start_app",
+        "app": "code"
+      },
+      {
+        "type": "set_do_not_disturb",
+        "duration": 120
+      }
+    ]
+  },
+  "morning_routine": {
+    "trigger": "time_based",
+    "time": "09:00",
+    "actions": [
+      {
+        "type": "system_info",
+        "display": true
+      },
+      {
+        "type": "weather_check",
+        "location": "auto"
+      },
+      {
+        "type": "calendar_summary",
+        "days": 1
+      }
+    ]
+  },
+  "battery_low": {
+    "trigger": "system_condition",
+    "condition": "battery_below_20",
+    "actions": [
+      {
+        "type": "notification",
+        "message": "Battery low! Consider charging."
+      },
+      {
+        "type": "reduce_performance",
+        "mode": "power_saver"
+      }
+    ]
+  }
+}

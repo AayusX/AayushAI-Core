@@ -1,0 +1,153 @@
+{
+    "profile": {
+        "name": "Aayush"
+    },
+    "conversations": [
+        {
+            "timestamp": "2025-08-02 11:31:09",
+            "user_input": "hello",
+            "processed_input": "hello"
+        },
+        {
+            "timestamp": "2025-08-02 11:31:17",
+            "user_input": "hello",
+            "processed_input": "hello"
+        },
+        {
+            "timestamp": "2025-08-02 11:38:05",
+            "user_input": "hi",
+            "processed_input": "hi"
+        },
+        {
+            "timestamp": "2025-08-02 11:38:22",
+            "user_input": "hello",
+            "processed_input": "hello"
+        },
+        {
+            "timestamp": "2025-08-02 11:38:28",
+            "user_input": "how are you?",
+            "processed_input": "how are you?"
+        },
+        {
+            "timestamp": "2025-08-02 11:38:47",
+            "user_input": "who my name",
+            "processed_input": "who my name"
+        },
+        {
+            "timestamp": "2025-08-02 11:39:24",
+            "user_input": "play lo-fi beats",
+            "processed_input": "play lo-fi beats"
+        },
+        {
+            "timestamp": "2025-08-02 11:39:34",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 11:50:59",
+            "user_input": "hi",
+            "processed_input": "hi"
+        },
+        {
+            "timestamp": "2025-08-02 11:51:04",
+            "user_input": "hello",
+            "processed_input": "hello"
+        },
+        {
+            "timestamp": "2025-08-02 11:51:08",
+            "user_input": "who am i",
+            "processed_input": "who am i"
+        },
+        {
+            "timestamp": "2025-08-02 11:51:25",
+            "user_input": "what is my name",
+            "processed_input": "what is my name"
+        },
+        {
+            "timestamp": "2025-08-02 11:51:30",
+            "user_input": "joke",
+            "processed_input": "joke"
+        },
+        {
+            "timestamp": "2025-08-02 11:54:42",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 12:04:12",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 12:04:43",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 12:15:51",
+            "user_input": "hi",
+            "processed_input": "hi"
+        },
+        {
+            "timestamp": "2025-08-02 12:16:22",
+            "user_input": "wellcode",
+            "processed_input": "wellcode"
+        },
+        {
+            "timestamp": "2025-08-02 12:16:27",
+            "user_input": "joke",
+            "processed_input": "joke"
+        },
+        {
+            "timestamp": "2025-08-02 13:14:07",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 13:14:17",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 13:15:01",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 13:19:34",
+            "user_input": "hi",
+            "processed_input": "hi"
+        },
+        {
+            "timestamp": "2025-08-02 13:25:51",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 13:40:24",
+            "user_input": "exit",
+            "processed_input": "exit"
+        },
+        {
+            "timestamp": "2025-08-02 13:40:31",
+            "user_input": "hi",
+            "processed_input": "hi"
+        },
+        {
+            "timestamp": "2025-08-02 13:40:57",
+            "user_input": "play song on youtube",
+            "processed_input": "play song on youtube"
+        },
+        {
+            "timestamp": "2025-08-02 13:41:12",
+            "user_input": "system status",
+            "processed_input": "system status"
+        },
+        {
+            "timestamp": "2025-08-02 13:42:12",
+            "user_input": "clean system",
+            "processed_input": "clean system"
+        }
+    ],
+    "learned_patterns": {}
+}

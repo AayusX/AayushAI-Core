@@ -1,0 +1,22 @@
+# Core dependencies for AayushAGI
+pyttsx3>=2.90
+requests>=2.25.1
+beautifulsoup4>=4.9.3
+cryptography>=3.4.8
+
+# System monitoring and automation
+psutil>=5.8.0
+
+# Voice recognition (optional but recommended)
+SpeechRecognition>=3.8.1
+pyaudio>=0.2.11
+
+# Advanced features
+numpy>=1.21.0
+scipy>=1.7.0
+
+# Additional useful packages
+python-dateutil>=2.8.2
+colorama>=0.4.4
+click>=8.0.0
+tqdm>=4.62.0
