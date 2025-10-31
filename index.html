@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AayusX Instant Voice Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Define colors for the dynamic waveform */
+        :root {
+            --primary-blue: #4285F4;
+            --primary-red: #DB4437;
+            --primary-yellow: #F4B400;
+            --primary-green: #0F9D58;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f9;
+        }
+
+        /* Message Styles */
+        .ai-message {
+            background-color: white;
+            border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            max-width: 85%;
+        }
+
+        .user-message {
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+            max-width: 85%;
+        }
+
+        /* --- Waveform Animation CSS (The core effect) --- */
+        .wave-bar {
+            width: 3px;
+            height: 12px;
+            margin: 0 1px;
+            border-radius: 2px;
+            transform-origin: bottom;
+            animation: none;
+            transition: height 0.1s, opacity 0.5s;
+        }
+
+        .listening .wave-bar {
+            animation: dynamic-pulse 0.6s infinite alternate;
+        }
+        
+        /* Apply colors and staggered delay */
+        .listening .wave-bar:nth-child(1) { background-color: var(--primary-blue); animation-delay: 0s; }
+        .listening .wave-bar:nth-child(2) { background-color: var(--primary-red); animation-delay: 0.1s; }
+        .listening .wave-bar:nth-child(3) { background-color: var(--primary-yellow); animation-delay: 0.2s; }
+        .listening .wave-bar:nth-child(4) { background-color: var(--primary-green); animation-delay: 0.3s; }
+        .listening .wave-bar:nth-child(5) { background-color: var(--primary-blue); animation-delay: 0.4s; }
+        .listening .wave-bar:nth-child(6) { background-color: var(--primary-red); animation-delay: 0.5s; }
+        .listening .wave-bar:nth-child(7) { background-color: var(--primary-yellow); animation-delay: 0.6s; }
+        .listening .wave-bar:nth-child(8) { background-color: var(--primary-green); animation-delay: 0.7s; }
+
+        @keyframes dynamic-pulse {
+            0% { transform: scaleY(0.2); }
+            100% { transform: scaleY(2.0); }
+        }
+
+        /* Loading Dots for Thinking State */
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-blue);
+            border-radius: 50%;
+            margin: 0 4px;
+            animation: dot-bounce 0.6s infinite alternate;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dot-bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center">
+
+    <!-- Error Message Box -->
+    <div id="error-message" class="fixed top-0 left-1/2 -translate-x-1/2 mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg shadow-lg z-30 transition-all duration-300 opacity-0 pointer-events-none">
+        An error occurred while fetching data. Check console for details.
+    </div>
+
+    <!-- Main Chat Window Container (Visible immediately for fast TTI) -->
+    <div id="app-container" class="w-full h-full sm:h-[90vh] sm:max-w-3xl flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100">
+
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <h1 class="text-xl font-extrabold text-gray-900 flex items-center">
+                <span class="text-2xl text-blue-600 mr-2">A</span><span class="text-blue-600">ayus</span><span class="text-gray-900">X</span>
+            </h1>
+            <span class="text-sm text-gray-500">Instant Assistant</span>
+        </div>
+
+        <!-- Scrollable Chat History -->
+        <div id="chat-history" class="flex-grow overflow-y-auto p-4 space-y-4">
+             <!-- Welcome Message is immediate since there's no history to load -->
+            <div id="welcome-message" class="text-center text-gray-400 p-4">Welcome! Press and hold the mic button to speak.</div>
+        </div>
+
+        <!-- Fixed Input Area (The Voice & Text Control) -->
+        <div class="p-4 border-t border-gray-200 bg-white shadow-inner flex flex-col">
+            
+            <div class="flex items-end">
+                <!-- Text Input / Waveform Container -->
+                <div id="input-container" class="relative flex-grow mr-2 bg-gray-100 rounded-full h-12 flex items-center p-1 transition-all duration-300">
+                    
+                    <!-- Text Input (Visible initially) -->
+                    <input id="text-input" type="text" placeholder="Type a question or hold the mic..." 
+                           class="w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none px-4 text-gray-800 rounded-full" />
+                    
+                    <!-- Send Button (For text input) -->
+                    <button id="send-button" class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center transition-opacity duration-300 hover:bg-blue-600 active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l.487-.291c.712-.422 1.954-.422 2.666 0l1.717 1.025a1 1 0 001.272 0l1.717-1.025c.712-.422 1.954-.422 2.666 0l.487.291a1 1 0 001.169-1.409l-7-14z" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Listening Status (Appears over text input when active) -->
+                    <div id="listening-status" class="absolute inset-0 hidden flex items-center justify-center px-4 rounded-full bg-white border border-blue-400 transition-opacity duration-300">
+                        <p id="status-text" class="text-blue-600 font-medium mr-4">Listening...</p>
+                        <div class="flex items-center" id="waveform-display">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Status (Appears over text input during API call) -->
+                    <div id="loading-status" class="absolute inset-0 hidden flex items-center justify-center px-4 rounded-full bg-white border border-gray-400 transition-opacity duration-300">
+                        <p class="text-gray-600 font-medium mr-4">Searching Google...</p>
+                        <div class="flex items-center">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Microphone Button (The always-visible trigger) -->
+                <button id="mic-button" class="w-10 h-10 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition-colors duration-300 hover:bg-gray-300 active:scale-95">
+                    <!-- Mic Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.5 10a1.5 1.5 0 003 0V4a1.5 1.5 0 00-3 0v6z" />
+                        <path fill-rule="evenodd" d="M10 17a5 5 0 100-10 5 5 0 000 10zM17.5 10a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const errorMessage = document.getElementById('error-message');
+        const micButton = document.getElementById('mic-button');
+        const textInput = document.getElementById('text-input');
+        const sendButton = document.getElementById('send-button');
+        const listeningStatus = document.getElementById('listening-status');
+        const loadingStatus = document.getElementById('loading-status');
+        const statusText = document.getElementById('status-text');
+        const chatHistory = document.getElementById('chat-history');
+        const waveformDisplay = document.getElementById('waveform-display');
+        const welcomeMessage = document.getElementById('welcome-message');
+        
+        const API_MODEL = "gemini-2.5-flash-preview-09-2025";
+
+        // =========================================================================
+        // !!! IMPORTANT FOR DEPLOYMENT !!!
+        // This key has been provided by the user for external deployment.
+        // =========================================================================
+        const apiKey = "AIzaSyDbjeb6_x6PZ-5yCc0LMsRR-j9oC3Uf8O0"; 
+        
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
+
+        let isListening = false;
+        let isLoading = false;
+        let retryDelay = 1000;
+        const maxRetries = 5;
+
+        // --- Event Listeners for PUSH-TO-TALK ---
+
+        // Desktop/Mouse events
+        micButton.addEventListener('mousedown', startListening);
+        micButton.addEventListener('mouseup', stopListeningAndProcess);
+        
+        // Mobile/Touch events
+        micButton.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent touch-hold context menu
+            startListening();
+        });
+        micButton.addEventListener('touchend', stopListeningAndProcess);
+        
+        // Text Input events
+        sendButton.addEventListener('click', handleTextInput);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleTextInput();
+        });
+
+        // --- Interaction Flow & State Management ---
+
+        function handleTextInput() {
+            if (isLoading) return;
+
+            const query = textInput.value.trim();
+            if (query.length > 0) {
+                textInput.value = '';
+                addMessageToUI(query, 'user');
+                processQuery(query);
+            }
+        }
+        
+        function startListening() {
+            if (isListening || isLoading) return;
+
+            isListening = true;
+            
+            // 1. Visually prepare the input area for voice
+            textInput.classList.add('opacity-0', 'pointer-events-none');
+            sendButton.classList.add('opacity-0', 'pointer-events-none');
+            
+            // 2. Activate Listening UI and Waveform (Instantaneous)
+            listeningStatus.classList.remove('hidden');
+            waveformDisplay.classList.add('listening');
+
+            // 3. Update Mic button color to indicate active recording (Red)
+            micButton.classList.remove('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+            micButton.classList.add('bg-red-500', 'text-white', 'shadow-lg'); 
+            statusText.textContent = "Listening...";
+        }
+
+        // Triggered on mouseup or touchend
+        function stopListeningAndProcess() {
+            if (!isListening) return; 
+
+            stopListening();
+            
+            // For a non-live mic implementation, we use a simple placeholder query
+            // In a real app, this would be the transcribed voice text
+            const simulatedQuery = "Tell me something interesting about the most recent discovery in space."; 
+            
+            // Since there is no actual speech recognition, we immediately simulate the user's input
+            addMessageToUI(simulatedQuery, 'user');
+
+            // Start loading state
+            loadingStatus.classList.remove('hidden');
+            isLoading = true;
+
+            // Call the main processing function
+            processQuery(simulatedQuery);
+        }
+        
+        function stopListening() {
+            isListening = false;
+            
+            // 1. Reset visual states
+            listeningStatus.classList.add('hidden');
+            waveformDisplay.classList.remove('listening');
+            
+            // 2. Reset Mic button color
+            micButton.classList.remove('bg-red-500', 'text-white', 'shadow-lg');
+            micButton.classList.add('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+            
+            // 3. Restore text input elements
+            textInput.classList.remove('opacity-0', 'pointer-events-none');
+            sendButton.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // Handles API call for both text and voice input
+        async function processQuery(query) {
+            // Ensure UI shows loading state
+            loadingStatus.classList.remove('hidden');
+            isLoading = true;
+
+            // Check if API key is present before calling (redundant now, but good check for safety)
+            if (!apiKey) {
+                 stopLoading();
+                 showError("API Key is missing! Cannot connect to AI service.");
+                 addMessageToUI("Error: Cannot connect to AI service. API key is not configured.", 'ai');
+                 return;
+            }
+
+            const { text, sources } = await fetchGroundedContent(query);
+            
+            // Add the AI response and sources to UI
+            addMessageToUI(text, 'ai', sources);
+
+            // Reset UI to idle state
+            stopLoading();
+        }
+
+        function stopLoading() {
+            isLoading = false;
+            
+            // 1. Hide Loading UI
+            loadingStatus.classList.add('hidden');
+
+            // 2. Restore Text Input Visibility
+            textInput.classList.remove('opacity-0', 'pointer-events-none');
+            sendButton.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // --- API & Utility Functions ---
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                errorMessage.classList.add('opacity-0', 'pointer-events-none');
+            }, 5000);
+        }
+
+        async function retryFetch(url, options, retries = 0) {
+            try {
+                const response = await fetch(url, options);
+                if (response.status === 429 && retries < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    retryDelay *= 2; // Exponential backoff
+                    return retryFetch(url, options, retries + 1);
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                retryDelay = 1000; // Reset delay on success
+                return response;
+            } catch (error) {
+                if (retries < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    retryDelay *= 2;
+                    return retryFetch(url, options, retries + 1);
+                }
+                throw error;
+            }
+        }
+
+        async function fetchGroundedContent(userQuery) {
+            // --- UPDATED SYSTEM PROMPT FOR SHORTER ANSWERS ---
+            const systemPrompt = "You are AayusX, a helpful and professional research assistant. Your primary goal is to provide **very short, direct, and immediate answers** based solely on Google Search results. Prioritize brevity and do not elaborate unless necessary. Format the response clearly using only paragraphs and lists.";
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            try {
+                // apiUrl now contains the hardcoded API key
+                const response = await retryFetch(apiUrl, options);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    let sources = [];
+
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attribution => ({
+                                uri: attribution.web?.uri,
+                                title: attribution.web?.title,
+                            }))
+                            .filter(source => source.uri && source.title);
+                    }
+
+                    return { text, sources };
+                }
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                showError("The connection to the AI failed. Please check the console.");
+                return { text: "Sorry, I ran into a technical error while trying to fetch that information. Please try again!", sources: [] };
+            }
+            return { text: "Sorry, I couldn't get a valid response from the AI. The model may have been blocked or the query was unclear.", sources: [] };
+        }
+
+        // --- UI Rendering ---
+
+        function addMessageToUI(text, type, sources = []) {
+            if (welcomeMessage) welcomeMessage.remove();
+
+            const isUser = type === 'user';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = isUser 
+                ? 'user-message p-4' 
+                : 'ai-message p-4 flex flex-col';
+            
+            if (!isUser) {
+                const nameP = document.createElement('p');
+                nameP.className = 'font-semibold text-gray-800 mb-1';
+                nameP.textContent = 'AayusX';
+                contentDiv.appendChild(nameP);
+            }
+
+            const textP = document.createElement('p');
+            textP.className = isUser ? 'text-white whitespace-pre-wrap' : 'text-gray-700 whitespace-pre-wrap';
+            textP.textContent = text;
+            
+            contentDiv.appendChild(textP);
+
+            // Add sources/citations if they exist
+            if (sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.className = 'mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 space-y-1';
+                sourcesDiv.innerHTML = `<p class="font-semibold">Sources (Grounded Search):</p>`;
+                
+                sources.forEach((source, index) => {
+                    const sourceLink = document.createElement('a');
+                    sourceLink.href = source.uri;
+                    sourceLink.target = '_blank';
+                    sourceLink.className = 'block truncate hover:underline text-blue-500';
+                    sourceLink.textContent = `[${index + 1}] ${source.title}`;
+                    sourcesDiv.appendChild(sourceLink);
+                });
+                
+                contentDiv.appendChild(sourcesDiv);
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatHistory.appendChild(messageDiv);
+            
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+    </script>
+</body>
+</html>
+
